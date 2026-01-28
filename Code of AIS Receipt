@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIS Receipt Generator</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Custom font for a more professional look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Input focus effects */
+        .input-field:focus {
+            ring: 2px;
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-blue-900 text-white shadow-lg">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-file-invoice-dollar text-2xl text-blue-300"></i>
+                <h1 class="text-xl font-bold tracking-wide">AIS <span class="font-light text-blue-200">Receipt Generator</span></h1>
+            </div>
+            <div class="text-xs md:text-sm text-blue-200 text-right hidden sm:block">
+                Army IBA Specialist
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-4xl">
+        
+        <div class="grid md:grid-cols-3 gap-8">
+            
+            <!-- Left Column: Input Form -->
+            <div class="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-800">Receipt Details</h2>
+                    <span class="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded-full">New Entry</span>
+                </div>
+                
+                <form id="receiptForm" class="p-6 space-y-5">
+                    
+                    <!-- Row 1: Date & Invest Form -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <input type="date" id="date" required class="w-full rounded-md border-gray-300 border px-4 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Currency / Form</label>
+                            <select id="currency" class="w-full rounded-md border-gray-300 border px-4 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-white">
+                                <option value="BDT">Taka (BDT)</option>
+                                <option value="USD">USD ($)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Name & Amount -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Payer Name</label>
+                            <div class="relative">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <i class="fa-regular fa-user text-gray-400 text-xs"></i>
+                                </div>
+                                <input type="text" id="name" placeholder="e.g. John Doe" required class="pl-9 w-full rounded-md border-gray-300 border px-4 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                            <div class="relative">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <i class="fa-solid fa-money-bill-wave text-gray-400 text-xs"></i>
+                                </div>
+                                <input type="number" id="amount" placeholder="0.00" required class="pl-9 w-full rounded-md border-gray-300 border px-4 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Paid For -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment For</label>
+                        <input type="text" id="paidFor" placeholder="e.g. Course Registration Fee" required class="w-full rounded-md border-gray-300 border px-4 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all">
+                    </div>
+
+                    <!-- Row 4: Authorization & Accepted By -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Authorized By (Signature)</label>
+                            <input type="text" id="authorization" placeholder="Name of Authorizer" class="w-full rounded-md border-gray-300 border px-4 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Accepted By</label>
+                            <input type="text" id="acceptedBy" placeholder="Staff Name" class="w-full rounded-md border-gray-300 border px-4 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="pt-4 flex items-center justify-end space-x-3">
+                        <button type="button" onclick="clearForm()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Clear
+                        </button>
+                        <button type="button" onclick="generatePDF()" class="inline-flex items-center px-5 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-900 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                            <i class="fa-solid fa-download mr-2"></i> Download Receipt
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Right Column: Info & Preview Hint -->
+            <div class="space-y-6">
+                <!-- Organization Info Card -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="bg-blue-100 p-2 rounded-lg">
+                            <i class="fa-solid fa-building-columns text-blue-700"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-800">AIS Details</h3>
+                    </div>
+                    <ul class="space-y-3 text-sm text-gray-600">
+                        <li class="flex items-start space-x-3">
+                            <i class="fa-solid fa-phone mt-1 text-gray-400"></i>
+                            <span>+8801410761298</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i class="fa-solid fa-envelope mt-1 text-gray-400"></i>
+                            <span class="break-all">armyibaspecialist@gmail.com</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i class="fa-solid fa-location-dot mt-1 text-gray-400"></i>
+                            <span>1 no. road, United Housing, Pirerbazar, Sylhet - 3100</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Tips Card -->
+                <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                    <h4 class="font-bold text-blue-900 mb-2 text-sm">Instructions</h4>
+                    <p class="text-xs text-blue-800 leading-relaxed">
+                        Fill in all the fields on the left. Once ready, click "Download Receipt" to generate a professional PDF document. The generated PDF includes the official AIS letterhead and is ready for printing or emailing.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-gray-400 py-6 mt-8">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p>&copy; <span id="year"></span> AIS (Army IBA Specialist). All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Set current date as default
+        document.getElementById('date').valueAsDate = new Date();
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        function clearForm() {
+            document.getElementById('receiptForm').reset();
+            document.getElementById('date').valueAsDate = new Date();
+        }
+
+        function generatePDF() {
+            // Check for required fields
+            const name = document.getElementById('name').value;
+            const amount = document.getElementById('amount').value;
+            const paidFor = document.getElementById('paidFor').value;
+            
+            if(!name || !amount || !paidFor) {
+                alert("Please fill in Name, Amount, and Payment For fields.");
+                return;
+            }
+
+            // Get jsPDF instance
+            const { jsPDF } = window.jspdf;
+            
+            // Create PDF (A5 size is standard for receipts, but we'll use A4 for standard printing)
+            // 'p' = portrait, 'mm' = millimeters, 'a4' = format
+            const doc = new jsPDF('p', 'mm', 'a4');
+
+            // --- VARIABLES ---
+            const inputs = {
+                name: name,
+                amount: amount,
+                currency: document.getElementById('currency').value,
+                paidFor: paidFor,
+                date: document.getElementById('date').value,
+                auth: document.getElementById('authorization').value,
+                acceptedBy: document.getElementById('acceptedBy').value
+            };
+
+            const primaryColor = [23, 37, 84]; // Dark Blue (Tailwind blue-950)
+            const secondaryColor = [100, 116, 139]; // Slate 500
+            
+            // --- HEADER ---
+            // Logo / Title
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(32);
+            doc.setTextColor(...primaryColor);
+            doc.text("AIS", 105, 25, null, null, "center");
+
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.text("Army IBA Specialist", 105, 32, null, null, "center");
+
+            // Contact Info (Centered, Small)
+            doc.setFontSize(9);
+            doc.setTextColor(...secondaryColor);
+            let yPos = 40;
+            doc.text("1 no. road, United Housing, Pirerbazar, Sylhet - 3100", 105, yPos, null, null, "center");
+            yPos += 5;
+            doc.text("Phone: +8801410761298  |  Email: armyibaspecialist@gmail.com", 105, yPos, null, null, "center");
+
+            // Horizontal Line
+            yPos += 8;
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            doc.line(20, yPos, 190, yPos);
+
+            // --- RECEIPT TITLE ---
+            yPos += 15;
+            doc.setFontSize(18);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(...primaryColor);
+            doc.text("OFFICIAL RECEIPT", 105, yPos, null, null, "center");
+            
+            // Receipt Metadata (Right aligned date, Left aligned Receipt No)
+            yPos += 15;
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont("helvetica", "normal");
+            
+            // Generate a random receipt number for professional look
+            const receiptNo = "REC-" + Math.floor(Math.random() * 100000);
+            
+            doc.text(`Receipt No: ${receiptNo}`, 20, yPos);
+            doc.text(`Date: ${inputs.date}`, 190, yPos, null, null, "right");
+
+            // --- RECEIPT BODY (Box style) ---
+            yPos += 10;
+            const boxTop = yPos;
+            
+            // Background for Amount
+            doc.setFillColor(243, 244, 246); // Gray-100
+            doc.rect(20, yPos, 170, 15, 'F');
+            
+            // Amount Text
+            yPos += 10;
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            const currencySymbol = inputs.currency === "USD" ? "$" : "BDT";
+            doc.text(`Amount Paid: ${currencySymbol} ${inputs.amount}`, 25, yPos);
+            
+            // Main Content Lines
+            yPos += 20;
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+            
+            const lineHeight = 12;
+
+            // Helper function to draw label and value
+            function drawLineItem(label, value, y) {
+                doc.setFont("helvetica", "bold");
+                doc.text(label, 20, y);
+                doc.setFont("helvetica", "normal");
+                doc.text(value, 60, y);
+                // Underline the value
+                doc.setDrawColor(220, 220, 220);
+                doc.line(60, y + 2, 190, y + 2);
+            }
+
+            drawLineItem("Received From:", inputs.name, yPos);
+            yPos += lineHeight;
+            
+            drawLineItem("Payment For:", inputs.paidFor, yPos);
+            yPos += lineHeight;
+            
+            drawLineItem("Payment Mode:", "Cash / Online", yPos); // Static for now, can be dynamic
+            yPos += lineHeight;
+
+            // --- FOOTER SECTION ---
+            yPos = 240; // Push to bottom of page
+            
+            // Signatures
+            doc.setFontSize(10);
+            
+            // Left Signature (Authorized)
+            doc.text("_______________________", 30, yPos);
+            doc.text("Authorized Signature", 30, yPos + 5);
+            if(inputs.auth) {
+                doc.setFont("times", "italic"); // Use italic for "signature" look
+                doc.text(inputs.auth, 35, yPos - 5);
+                doc.setFont("helvetica", "normal");
+            }
+
+            // Right Signature (Accepted By)
+            doc.text("_______________________", 140, yPos);
+            doc.text("Accepted By", 140, yPos + 5);
+            if(inputs.acceptedBy) {
+                doc.setFont("times", "italic");
+                doc.text(inputs.acceptedBy, 145, yPos - 5);
+                doc.setFont("helvetica", "normal");
+            }
+
+            // Disclaimer / Footer
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text("This is a computer-generated receipt.", 105, 280, null, null, "center");
+
+            // Save PDF
+            doc.save(`AIS_Receipt_${inputs.name.replace(/\s+/g, '_')}.pdf`);
+        }
+    </script>
+</body>
+</html>
+
